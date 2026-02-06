@@ -8,16 +8,13 @@ const authorSchema = new mongoose.Schema({
     }
 })
 
-authorSchema.pre('deleteOne', function (next) {
-    Book.find({ author: this.id }, (err, books) => {
-        if (err) {
-            next(err)
-        } else if (books.length > 0) {
-            next(new Error('This author has books still'))
-        } else {
-            next()
-        }
-    })
+authorSchema.pre('deleteOne', { document: true, query: false }, async function () {
+    const count = await Book.countDocuments({ author: this.id })
+
+    if (count > 0) {
+        throw new Error('This author has books still')
+    }
 })
+
 
 module.exports = mongoose.model('Author', authorSchema)

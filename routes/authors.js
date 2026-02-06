@@ -86,15 +86,16 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     let author
     try {
+        console.log('hit')
         author = await Author.findById(req.params.id)
-        await author.deleteOne()
-        res.redirect('/authors')
-    } catch {
-        if (author == null) {
-            res.redirect('/')
-        } else {
-            res.redirect(`/authors/${author.id}`)
-        }
+        if (!author) return res.redirect('/')
+
+        await author.deleteOne()     // triggers the pre('deleteOne') hook above
+        return res.redirect('/authors')
+    } catch (err) {
+        console.error(err.message)   // so you actually see the reason
+        if (author == null) return res.redirect('/')
+        return res.redirect(`/authors/${author.id}`)
     }
 })
 
